@@ -9,6 +9,8 @@ import gzip
 
 import scipy.misc as scipy_misc
 
+from neural_network import nn
+
 """
 Loosely inspired by http://abel.ee.ucla.edu/cvxopt/_downloads/mnist.py
 which is GPL licensed.
@@ -67,6 +69,22 @@ def ascii_show(image):
          _row=_row+1
          if _row > 28 : break
 
+def ascii_show(lbl, image):
+    _row =0
+    row = ""
+    row2 = ""
+    print('{0: <3}'.format(str(lbl)) + "_")
+    for x in image:
+        for el in x:
+            if el > 10 : row2+="*"
+            else : row2+=" "
+        print(row2)
+        row2=""
+        #print(row)
+    print(row2)
+    _row=_row+1
+    if _row > 28 : return
+
 def read_img_from_file(fname):
     img = scipy_misc.imread(fname,True,'L')
     return img
@@ -93,4 +111,25 @@ def download_mnist(images_filename, labels_filename):
 #download_mnist('train-images-idx3-ubyte','train-labels-idx1-ubyte')
 #download_mnist('t10k-images-idx3-ubyte','t10k-labels-idx1-ubyte')
 mnist = read("training",path="in_files\\")
-ascii_show(mnist)
+##ascii_show(mnist)
+
+arch =[784,30,10]
+net = nn(arch)
+train_set = list()
+for label, img in mnist:
+    v  = np.zeros(10)
+    v[label]=1
+    train_set.append({"signal":np.reshape(img,(784)),"exp_value":v})
+print(len(train_set))
+
+net.train(train_set,100,10,0.5)
+net.save_to_file("net_for_mnist_eta0.5_100.net")
+#net = nn(filename="net_for_mnist.net")
+test = read("testing",path="in_files\\")
+test_set =list()
+el = next(test);
+ascii_show(el[0],el[1])
+res = net.feed_fwd(np.reshape(el[1],784))
+print("Res: "+str(res))
+print("exp: "+str(el[0]))
+
