@@ -35,7 +35,7 @@ net = tf.keras.models.Sequential([
 ])
 
 net.compile(optimizer='SGD',
-              loss=keras.losses.categorical_crossentropy,
+              loss=tf.keras.losses.categorical_crossentropy,
               metrics=['accuracy']#[tf.keras.metrics.mean_squared_error]
              )
 
