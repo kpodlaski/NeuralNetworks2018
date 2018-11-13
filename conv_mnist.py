@@ -1,7 +1,6 @@
 import tensorflow as tf
-import numpy as np
-from keras import backend
-import keras
+from tensorflow.python.keras import backend
+
 
 mnist = tf.keras.datasets.mnist
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -20,8 +19,8 @@ x_test = x_test.astype('float32')
 x_train /= 255
 x_test /= 255
 
-y_train = keras.utils.to_categorical(y_train, 10)
-y_test = keras.utils.to_categorical(y_test, 10)
+y_train = tf.keras.utils.to_categorical(y_train, 10)
+y_test = tf.keras.utils.to_categorical(y_test, 10)
 
 net = tf.keras.models.Sequential([
   tf.keras.layers.Conv2D(6,kernel_size=(5,5), strides=(1,1),
