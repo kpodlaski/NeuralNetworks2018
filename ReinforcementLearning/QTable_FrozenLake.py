@@ -1,5 +1,7 @@
 # Source
 # https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-0-q-learning-with-tables-and-neural-networks-d195264329d0
+import random
+
 import gym
 import numpy as np
 
@@ -14,6 +16,8 @@ num_episodes = 2000
 #create lists to contain total rewards and steps per episode
 #jList = []
 rList = []
+random_decision_probability = 0.3
+random.seed()
 for i in range(num_episodes):
     #Reset environment and get first new observation
     state = env.reset()
@@ -25,6 +29,10 @@ for i in range(num_episodes):
         step+=1
         #Choose an action by greedily (with noise) picking from Q table
         action = np.argmax(Q[state, :] + np.random.randn(1, env.action_space.n) * (1. / (i + 1)))
+        if random.random()>random_decision_probability:
+            action = np.argmax(Q[state, :])
+        else:
+            action = env.action_space.sample()
         #Get new state and reward from environment
         new_state, reward, done, info = env.step(action)
         #Update Q-Table with new knowledge

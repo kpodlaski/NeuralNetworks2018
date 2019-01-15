@@ -1,10 +1,16 @@
 import tensorflow as tf
 from tensorflow.python.keras import backend
+import numpy as np
 
 
 mnist = tf.keras.datasets.mnist
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 img_rows, img_cols = x_train.shape[1:]
+print(x_train.shape)
+print(x_train.shape[1:])
+print(str(img_rows) + ' '+ str(img_cols))
+
+
 if backend.image_data_format() == 'channels_first':
             x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
             x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
@@ -42,9 +48,14 @@ net.compile(optimizer='SGD',
 
 
 
-net.fit(x_train, y_train, epochs=10, batch_size=100)
+net.fit(x_train, y_train, epochs=1, batch_size=100, verbose=2)
 test_loss, test_acc = net.evaluate(x_test, y_test)
 print('Test accuracy:', test_acc)
 print('Test loss:', test_loss)
+print(x_train.shape)
+print(x_test[0].shape)
+print(x_test.shape)
+print(net.predict(x_test[0].reshape(1,28,28,1)))
+print(net.predict(np.expand_dims(x_test[0],axis=0)))
 
 

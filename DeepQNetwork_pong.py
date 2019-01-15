@@ -17,13 +17,13 @@ import numpy as np
 def process_observation(observation, shape):
     return skimage.transform.resize(skimage.color.rgb2gray(observation), shape)
 
-env =gym.make("MsPacman-v0")
-#env =gym.make("Pong-v0")
+#env =gym.make("MsPacman-v0")
+env =gym.make("Pong-v0")
 learning_rate= 0.001
 learning_set_size =100
 
 state = env.reset()
-desired_shape_w = 210
+desired_shape_w = 170
 desired_shape_h = 160
 
 print(process_observation(state,[desired_shape_w,desired_shape_h]))
@@ -42,7 +42,7 @@ model.compile(loss='mse', optimizer=tf.keras.optimizers.Adam(lr=learning_rate), 
 
 
 
-max_games =160
+max_games =60
 epsilon = 0.9
 gamma=0.8
 
@@ -69,6 +69,7 @@ def train_model(memory, verbosity=0):
     #print("Train model:")
     model.fit(inputs,targets,epochs=1,verbose= verbosity)
     global epsilon
+    # zmiejszane epsilon wraz z doświadczeniem
     epsilon =epsilon*.9
 
 ##Test play - fill memory
@@ -76,36 +77,38 @@ g =0
 for g in range(0,max_games):
     done = False
     state = env.reset()
-    ###Pong starts after 18-20 moves
-    ##prev_state = None
-    ##for x in range(1, 20):
-    ##    prev_state = state
-    ##    state, reward, done, info = env.step(0);
-    ##cut height
-    ##dropped_rows = 40
-    ##prev_state = prev_state[dropped_rows:,:]
-    ##state = state[dropped_rows:,:]
+    #Pong starts after 18-20 moves
+    prev_state = None
+    for x in range(1, 20):
+        prev_state = state
+        state, reward, done, info = env.step(0);
+    #cut height
+    dropped_rows = 40
+    prev_state = prev_state[dropped_rows:, :]
+    prev_state = process_observation(prev_state, [desired_shape_w, desired_shape_h])
+    state = state[dropped_rows:,:]
     state = process_observation(state, [desired_shape_w, desired_shape_h])
+    agg_state = state + prev_state / 2
     while not done:
         #env.render()
-        #TODO: zmiejszane epsilon wraz z doświadczeniem
-        ##agg_state = state+prev_state/2
         if random.random()<epsilon:
             action = env.action_space.sample()
         else:
-            action = np.argmax(model.predict(np.reshape(state,[1,desired_shape_w,desired_shape_h,1])))
+            action = np.argmax(model.predict(np.reshape(agg_state,[1,desired_shape_w,desired_shape_h,1])))
         state_new, reward, done, info = env.step(action)
-        ##state_new = state_new[dropped_rows:, :]
+        state_new = state_new[dropped_rows:, :]
         state_new = process_observation(state_new,[desired_shape_w,desired_shape_h])
-        memory.append((state, action, state_new, reward, done))
+        agg_state_new = state_new+state/2
+        memory.append((agg_state, action, agg_state_new, reward, done))
         state = state_new
+        agg_state = agg_state_new
         if len(memory) > 5:
             train_model(memory, verbosity=0)
             memory.clear()
         if done:
             print ("die "+str(g))
             if g % 20 == 0:
-                model.save("out_files/pack_bot_"+str(g)+".qnn",overwrite=True)
+                model.save("out_files/pong_bot_"+str(g)+".qnn",overwrite=True)
                 print("saved "+ str(g))
-model.save("out_files/pack_bot_" + str(g) + ".qnn", overwrite=True)
+model.save("out_files/pong_bot_" + str(g) + ".qnn", overwrite=True)
 
